@@ -7,6 +7,9 @@ const emitTrades = telegrambot.emitTrades;
 const utc = moment.utc;
 const telegram = require("node-telegram-bot-api");
 
+const fs = require('fs'); //added to write the chatID of the subscribers.
+var tmpSubscription  = [];
+
 const Actor = function() {
   _.bindAll(this);
 
@@ -30,6 +33,19 @@ const Actor = function() {
   this.rawCommands = _.keys(this.commands);
   this.chatId = null;
   this.subscribers = [];
+
+//############################Load stored subscriptions if available#####################
+fs.readFile('subscriptions.txt', (err, tmpSubscription) => { 
+    if (err) fs.writeFile('subscriptions.txt', this.subscribers, (err));
+    else {
+      tmpSubscription = tmpSubscription.toString();
+      var splitSubscription = tmpSubscription.split(",");
+      splitSubscription.forEach(element => this.subscribers.push(Number(element)));
+      console.log('Current Telegram subscriptions from: ' + this.subscribers);
+    } 
+}) 
+//#######################################################################################
+
   this.bot = new telegram(telegrambot.token, { polling: true });
   this.bot.onText(/(.+)/, this.verifyQuestion);
 };
@@ -54,24 +70,24 @@ if(emitTrades) {
     var message = 'Trade initiated. ID: ' + tradeInitiated.id +
     '\nAction: ' + tradeInitiated.action + '\nPortfolio: ' +
     tradeInitiated.portfolio + '\nBalance: ' + tradeInitiated.balance;
-    this.bot.sendMessage(this.chatId, message);
+    this.subscribers.forEach(element => this.bot.sendMessage(element, message)); //send to all subscribers
   }
   
   Actor.prototype.processTradeCancelled = function (tradeCancelled) {
     var message = 'Trade cancelled. ID: ' + tradeCancelled.id;
-    this.bot.sendMessage(this.chatId, message);
+    this.subscribers.forEach(element => this.bot.sendMessage(element, message)); //send to all subscribers
   }
   
   Actor.prototype.processTradeAborted = function (tradeAborted) {
     var message = 'Trade aborted. ID: ' + tradeAborted.id +
     '\nNot creating order! Reason: ' + tradeAborted.reason;
-    this.bot.sendMessage(this.chatId, message);
+    this.subscribers.forEach(element => this.bot.sendMessage(element, message)); //send to all subscribers
   }
   
   Actor.prototype.processTradeErrored = function (tradeErrored) {
     var message = 'Trade errored. ID: ' + tradeErrored.id +
     '\nReason: ' + tradeErrored.reason;
-    this.bot.sendMessage(this.chatId, message);
+    this.subscribers.forEach(element => this.bot.sendMessage(element, message)); //send to all subscribers
   }
   
   Actor.prototype.processTradeCompleted = function (tradeCompleted) {
@@ -84,7 +100,7 @@ if(emitTrades) {
     '\nBalance: ' + tradeCompleted.balance +
     '\nFee percent: ' + tradeCompleted.feePercent +
     '\nEffective price: ' + tradeCompleted.effectivePrice;
-    this.bot.sendMessage(this.chatId, message); 
+    this.subscribers.forEach(element => this.bot.sendMessage(element, message)); //send to all subscribers
   }
 }
 
@@ -104,7 +120,14 @@ Actor.prototype.emitStart = function() {
 Actor.prototype.emitSubscribe = function() {
   if (this.subscribers.indexOf(this.chatId) === -1) {
     this.subscribers.push(this.chatId);
-    this.bot.sendMessage(this.chatId, `Success! Got ${this.subscribers.length} subscribers.`);
+ //####################################################new part###########################################
+ // console.log('New Telegram subscription! With ChatID: ' + this.chatId); //added for debugging purpose
+    fs.writeFile('subscriptions.txt', this.subscribers, (err) => { 
+      if (err) throw err;     // In case of a error throw err. 
+    }) 
+ //#######################################################################################################
+    this.subscribers.forEach(element =>  this.bot.sendMessage(element, `Success! Got ${this.subscribers.length} subscribers.`));
+    this.bot.sendMessage(this.chatId, `Your subscription is now permanently stored until you /unsubscribe.`);
   } else {
     this.bot.sendMessage(this.chatId, "You are already subscribed.");
   }
@@ -113,7 +136,14 @@ Actor.prototype.emitSubscribe = function() {
 Actor.prototype.emitUnSubscribe = function() {
   if (this.subscribers.indexOf(this.chatId) > -1) {
     this.subscribers.splice(this.subscribers.indexOf(this.chatId), 1);
+//####################################################new part#########################################
+//  console.log('Canceled Subscription from ChatID: ' + this.chatId); //added for debugging purpose
+    fs.writeFile('subscriptions.txt', this.subscribers, (err) => { 
+      if (err) throw err;     // In case of a error throw err. 
+    }) 
+ //#####################################################################################################
     this.bot.sendMessage(this.chatId, "Success!");
+    this.subscribers.forEach(element =>  this.bot.sendMessage(element, `A Subscriber left. Got ${this.subscribers.length} subscribers.`));
   } else {
     this.bot.sendMessage(this.chatId, "You are not subscribed.");
   }
