@@ -1,0 +1,23 @@
+#buy when RSI is at or below
+rsiOptIn= 25
+#trixOptIn from about -0.3 to 0
+trixOptIn= -0.1 
+
+#after sell wait until
+#RSI hits at least:
+rsiLockValue = 45
+#to prevent buying in a dump zone
+
+#Sell after percent gain
+percentGain = 1.2
+
+#stop loss percent
+stopLoss = 7
+
+#buy if price dropped
+#after last sell in %
+buyPriceDropped = 10
+
+#show console log
+#true or false
+consoleLog = true

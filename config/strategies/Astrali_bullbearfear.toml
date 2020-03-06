@@ -1,0 +1,10 @@
+#candles to include for crossover
+timePeriods = 12
+
+#if you want opposite trades
+#set this to true
+revertAdvice = false
+
+#buy/sell after X triggers
+buyTriggers = 5
+sellTriggers = 5

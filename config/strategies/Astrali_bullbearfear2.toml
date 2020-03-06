@@ -1,0 +1,17 @@
+#candles to include for crossover
+timePeriods = 12
+
+#if you want opposite trades
+#set this to true
+revertAdvice = false
+
+#buy/sell after X triggers
+buyTriggers = 5
+sellTriggers = 3
+
+#Pump and Dump settings
+#Pumpdetect x * 100%
+#set to 100000000 to disable
+pumpVolGain = 20 #10-100 works nice
+pdTimeout = 5 #candles for timeout
+pumphistory = 50
