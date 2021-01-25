@@ -1,0 +1,24 @@
+#to start buying
+#set 'sell' here else use 'buy'
+previousAction = 'sell'
+
+#candles 
+adxOptIn 	= 14
+trixOptIn 		= 18
+cciOptIn 		= 20
+
+#Initiate buy if all of this happens
+buyAdxOver = 30
+buyCciUnder = -130
+#additional trix uptrending.
+
+#Initiate Sell if all of this happens
+sellAdxOver = 30
+sellCciOver = 110 #default 100
+#additional trix downtrending
+
+
+#Options are 'enabled' or 'disabled'. 
+#sell price must be higher than buy price if enabled.
+#not much recommended but possible :)
+priceProtection = 'disabled'
